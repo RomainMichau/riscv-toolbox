@@ -6,7 +6,7 @@ reference, encoder and decoder. The reference is the
 — RV32I, plus the M and A extensions, plus the C, F and D tables it lists
 without encodings.
 
-**→ [romainmichau.github.io/riscv_toolbox](https://romainmichau.github.io/riscv_toolbox/)**
+**→ [romainmichau.github.io/riscv-toolbox](https://romainmichau.github.io/riscv-toolbox/)**
 
 The opcode is the field everything hangs off: type it into the encoder and the
 row of boxes changes into the format it asks for.
