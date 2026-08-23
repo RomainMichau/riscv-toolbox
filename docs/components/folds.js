@@ -1,0 +1,41 @@
+// Cards and the groups inside them fold the same way: everything but the first
+// one starts closed, and the user's own choices win and are kept in the browser
+// under a key of its own.
+
+import { useState } from "preact/hooks";
+
+const STORE_KEY = "rvt.collapsed";
+
+// A stored entry is true when the fold is *closed*: the default is open, so
+// only the folds a reader actually shut need remembering.
+let folds = load();
+
+function load() {
+  try {
+    return JSON.parse(localStorage.getItem(STORE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(folds));
+  } catch {
+    /* private mode, storage full: the UI still works, it just forgets */
+  }
+}
+
+// useFold gives a fold its open state and the toggle to flip it, remembering
+// the choice under key.
+export function useFold(key, closedByDefault) {
+  const [open, setOpen] = useState(() => !(key in folds ? Boolean(folds[key]) : closedByDefault));
+  const toggle = () => {
+    setOpen((wasOpen) => {
+      folds[key] = wasOpen; // it is closed from now on if it was open
+      save();
+      return !wasOpen;
+    });
+  };
+  return [open, toggle];
+}
