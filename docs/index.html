@@ -3,8 +3,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RISC-V Toolbox</title>
+  <title>RISC-V Toolbox — RV32 Instruction Encoder &amp; Decoder</title>
+  <meta name="description" content="Free browser tool to encode and decode RV32 RISC-V instructions bit by bit, plus a number converter and a full instruction and register reference card.">
+  <link rel="canonical" href="https://romainmichau.github.io/riscv-toolbox/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="RISC-V Toolbox — RV32 Instruction Encoder & Decoder">
+  <meta property="og:description" content="Encode and decode RV32 RISC-V instructions in the browser, plus a number converter and instruction/register reference.">
+  <meta property="og:url" content="https://romainmichau.github.io/riscv-toolbox/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="RISC-V Toolbox — RV32 Instruction Encoder & Decoder">
+  <meta name="twitter:description" content="Encode and decode RV32 RISC-V instructions in the browser, plus a number converter and instruction/register reference.">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "RISC-V Toolbox",
+    "url": "https://romainmichau.github.io/riscv-toolbox/",
+    "description": "Encode and decode RV32 RISC-V instructions in the browser, plus a number converter and instruction/register reference.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
   <link rel="stylesheet" href="style.css">
   <!-- Where the vendored modules live, so they and our own code can both
        import "preact" by name instead of by path. -->
@@ -22,7 +43,7 @@
   <header>
     <div>
       <h1>RISC-V Toolbox</h1>
-      <p class="sub">Small helpers for reading and writing RV32 instructions.</p>
+      <p class="sub">A RISC-V instruction encoder and decoder for RV32, plus a number converter and instruction/register reference — all in the browser.</p>
     </div>
     <a class="repo" href="https://github.com/RomainMichau/riscv-toolbox"
        target="_blank" rel="noopener noreferrer">
