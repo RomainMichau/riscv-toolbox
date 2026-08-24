@@ -17,11 +17,3 @@ Static site — no backend, no build. It is `docs/`, served as it sits.
 npm run serve   # localhost:8080
 npm test
 ```
-
-
-# TODO:
-- In decoder display register name also with there ID (and not just alias)
-- Make sure we handle 0x and 0b prefix correctly
-- 32 bits signed is broken (put the minus bit on 7th instead of 31th)
-- Make instructuion encoder more interactive
-- make unstructio decoder support hexa input

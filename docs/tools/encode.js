@@ -60,7 +60,10 @@ export function encodeRiscv(input) {
   const immOp = shift ? String(f.imm & 0x1f)
     : fmt === "U" ? "0x" + f.imm.toString(16).toUpperCase()
     : String(rv.immediateOf(fmt, f));
-  const ops = { rd: rv.abi(f.rd), rs1: rv.abi(f.rs1), rs2: rv.abi(f.rs2), imm: immOp };
+  // "Registers" toggle: the ABI name alone, as an assembler expects, or with
+  // its x-number in front for anyone reading the boxes register by register.
+  const regText = input.regFormat === "id" ? rv.regName : rv.abi;
+  const ops = { rd: regText(f.rd), rs1: regText(f.rs1), rs2: regText(f.rs2), imm: immOp };
   // The atomics carry their ordering in the two bits under the funct5.
   const named = inst.ext === "RV32A" ? { ...inst, name: inst.name + rv.amoSuffix(f.funct7) } : inst;
 

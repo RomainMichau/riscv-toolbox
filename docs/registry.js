@@ -426,8 +426,19 @@ export const TOOLS = [
     id: "riscv-encode",
     name: "Instruction Encoder",
     family: "RISC-V",
-    description: "Build an instruction bit by bit and read the word to feed the machine. Type the opcode first: it decides which format the rest of the word is in, and the row of boxes changes shape to match.",
+    description: "Build an instruction bit by bit and read the word to feed the machine. Type the opcode first — or pick an instruction by name and let it fill the opcode in — and the row of boxes changes shape to match.",
+    instructions: INSTRUCTIONS,
     inputs: [
+      {
+        id: "regFormat",
+        label: "Registers",
+        kind: "choice",
+        options: [
+          { id: "abi", label: "ABI name" },
+          { id: "id", label: "ID + ABI name" },
+        ],
+        value: "abi",
+      },
       seg("funct7", "funct7", FIELDS.funct7.width, COLOR.funct7),
       RS2_SEG,
       RS1_SEG,

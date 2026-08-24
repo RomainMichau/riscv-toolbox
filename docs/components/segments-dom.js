@@ -23,6 +23,7 @@ function text(tag, className, content) {
 export function mountSegments(host, tool, onValues) {
   const values = {}; // id -> bits, shared by every rebuild
   let layout = null;
+  let row = null;
 
   // A variant is picked by what one field holds: `equals` for a single value,
   // `oneOf` when several spellings ask for the same shape — the five RISC-V
@@ -46,16 +47,94 @@ export function mountSegments(host, tool, onValues) {
     onValues({ ...values });
   };
 
+  const rowHost = document.createElement("div");
+
   const build = (focus) => {
     layout = wanted();
-    const row = segmentRow(layout, values, changed);
-    host.replaceChildren(row.el);
+    row = segmentRow(layout, values, changed);
+    rowHost.replaceChildren(row.el);
     if (focus) row.restore(focus);
   };
+
+  host.replaceChildren();
+  // The picker is a shortcut into the same fields typing reaches: it only
+  // ever sets values and asks for a rebuild, same as a keystroke does.
+  if (tool.instructions) {
+    host.append(instructionPicker(tool.instructions, (inst) => {
+      applyInstruction(inst, values);
+      changed();
+      // Send the caret to the first field the instruction did not pin down,
+      // so filling in the operands can start right away.
+      const pinned = new Set(["opcode", "funct3", "funct7"]);
+      const next = layout.find((spec) => spec.id && !pinned.has(spec.id));
+      if (next) row.restore({ id: next.id, caret: 0 });
+    }));
+  }
+  host.append(rowHost);
 
   build(null);
   onValues({ ...values }); // all zeroes is already a valid word
   return () => host.replaceChildren();
+}
+
+const bin = (n, width) => (n >>> 0).toString(2).padStart(width, "0").slice(-width);
+
+// applyInstruction fills in the fields an instruction pins down — opcode,
+// funct3, and whatever tells it apart from its neighbours — and leaves the
+// operands (rd, rs1, rs2, the rest of imm) exactly as they were typed, so
+// picking an instruction is a shortcut into the boxes, not a reset of them.
+function applyInstruction(inst, values) {
+  values.opcode = bin(inst.opcode, 7);
+  if (inst.funct3 !== undefined) values.funct3 = bin(inst.funct3, 3);
+
+  if (inst.fmt === "R") {
+    // An atomic hides its funct5 in the top of funct7 and leaves aq/rl free.
+    const funct7 = inst.funct7 !== undefined ? inst.funct7 : (inst.funct5 ?? 0) << 2;
+    values.funct7 = bin(funct7, 7);
+  } else if (inst.imm7 !== undefined) {
+    // A shift hides its funct7 in the top of the immediate; shamt is below it.
+    const shamt = values.imm ? values.imm.slice(-5) : "00000";
+    values.imm = bin(inst.imm7, 7) + shamt;
+  } else if (inst.imm !== undefined) {
+    // ecall/ebreak: the whole immediate is what tells them apart.
+    values.imm = bin(inst.imm, 12);
+  }
+}
+
+let pickerSeq = 0;
+
+// instructionPicker is a type-ahead over the instruction names: pick one and
+// its opcode (and funct3/funct7) land in the boxes below, in whatever shape
+// that instruction's format asks for.
+function instructionPicker(instructions, onPick) {
+  const id = `inst-picker-${pickerSeq++}`;
+  const wrap = document.createElement("label");
+  wrap.className = "inst-picker";
+
+  const list = document.createElement("datalist");
+  list.id = id;
+  instructions.forEach((inst) => {
+    const opt = document.createElement("option");
+    opt.value = inst.name;
+    list.append(opt);
+  });
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.spellcheck = false;
+  input.autocomplete = "off";
+  input.placeholder = "add, addi, lw, beq…";
+  input.setAttribute("list", id);
+
+  const byName = new Map(instructions.map((inst) => [inst.name, inst]));
+  input.addEventListener("change", () => {
+    const inst = byName.get(input.value.trim().toLowerCase());
+    input.value = "";
+    if (inst) onPick(inst);
+  });
+
+  wrap.append(text("span", "choice-label", "instruction"), input, list);
+  return wrap;
 }
 
 // activeSegment remembers where the caret is, to put it back after a rebuild.

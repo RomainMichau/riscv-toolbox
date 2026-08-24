@@ -60,6 +60,17 @@ test("the encoder lays an R-type out into a word", () => {
   assert.equal(got.Effect, "t0 = t1 + t2");
 });
 
+test("the Registers toggle spells rd/rs1/rs2 out with their x-number too", () => {
+  // add t0, t1, t2 — same word as above, with the toggle flipped to id+abi.
+  const got = values("riscv-encode", {
+    regFormat: "id",
+    opcode: bits(0b0110011, 7), funct3: bits(0x0, 3), funct7: bits(0x00, 7),
+    rd: bits(5, 5), rs1: bits(6, 5), rs2: bits(7, 5),
+  });
+  assert.equal(got.Instruction, "add x5 · t0, x6 · t1, x7 · t2");
+  assert.equal(got.Effect, "x5 · t0 = x6 · t1 + x7 · t2");
+});
+
 test("the opcode picks the format, and the immediate is read the way it says", () => {
   // addi a0, sp, -16 — one field, sign extended.
   const addi = encode({ opcode: [0b0010011, 7], funct3: [0x0, 3], rd: [10, 5], rs1: [2, 5], imm: [0xFF0, 12] });
@@ -138,6 +149,11 @@ test("the decoder and the encoder agree, whichever way round you go", () => {
   }
   assert.equal(decode("0x00100073").Instruction, "ebreak");
   assert.equal(decode("0x0000006F").Instruction, "jal zero, 0");
+});
+
+test("a 0x prefix reads as a number even when the toggle is left on bits", () => {
+  const got = values("riscv-decode", { word: "0x00A00513", read: "bits" });
+  assert.equal(got.Instruction, "addi a0, zero, 10");
 });
 
 test("the decoder reads a table pattern, letters and all", () => {
