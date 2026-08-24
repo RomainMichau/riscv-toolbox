@@ -17,3 +17,8 @@ Static site — no backend, no build. It is `docs/`, served as it sits.
 npm run serve   # localhost:8080
 npm test
 ```
+
+
+# TODO:
+- In decoder display register name also with there ID (and not just alias)
+- Make sure we handle 0x and 0b prefix correctly
