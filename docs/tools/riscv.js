@@ -75,6 +75,20 @@ export const OPCODES = {
 // one the card lists.
 export const formatOf = (opcode) => OPCODES[opcode]?.fmt || "";
 
+// wordFields cuts a full 32 bit pattern — every bit known, none of it a
+// decoder's variable letter — into the named bit strings the encoder's boxes
+// hold, so a decoded word can be handed straight to the encoder to tweak.
+// null when the opcode is not one the card lists: the encoder would have
+// nothing to lay the rest of the word out by.
+export function wordFields(pattern) {
+  const opcode = parseInt(pattern.slice(WORD_BITS - 7), 2);
+  const fmt = formatOf(opcode);
+  if (!fmt) return null;
+  const out = {};
+  for (const [id, [from, to]] of slices(fmt)) out[id] = pattern.slice(from, to);
+  return out;
+}
+
 // The registers, in encoding order: ABI name, what it is for, and who is
 // expected to preserve it across a call.
 export const REGISTERS = [

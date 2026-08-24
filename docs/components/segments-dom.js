@@ -8,6 +8,7 @@
 // widget owns its subtree and only reports the values back up.
 
 import { COLORS } from "./bits.js";
+import { on } from "../lib/bus.js";
 
 function text(tag, className, content) {
   const el = document.createElement(tag);
@@ -74,7 +75,18 @@ export function mountSegments(host, tool, onValues) {
 
   build(null);
   onValues({ ...values }); // all zeroes is already a valid word
-  return () => host.replaceChildren();
+
+  // Another card — the decoder, handing over a word it just read — can load
+  // values in wholesale, the same as typing or the instruction picker would.
+  const offLoad = on(`load:${tool.id}`, (loaded) => {
+    Object.assign(values, loaded);
+    changed();
+  });
+
+  return () => {
+    host.replaceChildren();
+    offLoad();
+  };
 }
 
 const bin = (n, width) => (n >>> 0).toString(2).padStart(width, "0").slice(-width);

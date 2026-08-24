@@ -313,6 +313,19 @@ main {
 .error { margin: .9rem 0 0; color: var(--error); font-size: .85rem; }
 .hint { margin: .7rem 0 0; color: var(--muted); font-size: .72rem; }
 
+.send-to-encoder {
+  margin-top: .9rem;
+  padding: .45rem .8rem;
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: .45rem;
+  color: var(--accent);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.send-to-encoder:hover { background: var(--accent); color: var(--bg); }
+
 /* Reference tables with columns of their own. The card they come from is
    mostly tables, and a two column list cannot hold one. */
 .doc-grid-scroll { overflow-x: auto; }

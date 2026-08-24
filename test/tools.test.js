@@ -7,7 +7,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { run } from "../docs/tools/index.js";
-import { INSTRUCTIONS, layout } from "../docs/tools/riscv.js";
+import { INSTRUCTIONS, layout, wordFields } from "../docs/tools/riscv.js";
 
 const values = (id, inputs) =>
   Object.fromEntries(run(id, inputs).fields.map((f) => [f.label, f.value]));
@@ -154,6 +154,26 @@ test("the decoder and the encoder agree, whichever way round you go", () => {
 test("a 0x prefix reads as a number even when the toggle is left on bits", () => {
   const got = values("riscv-decode", { word: "0x00A00513", read: "bits" });
   assert.equal(got.Instruction, "addi a0, zero, 10");
+});
+
+test("the Hex mode reads plain hex digits, with or without a 0x", () => {
+  assert.equal(values("riscv-decode", { word: "00A00513", read: "hex" }).Instruction, "addi a0, zero, 10");
+  assert.equal(values("riscv-decode", { word: "0x00A00513", read: "hex" }).Instruction, "addi a0, zero, 10");
+  assert.equal(run("riscv-decode", { word: "00G0", read: "hex" }).error,
+    `"00G0" is not a hex number — try 007302B3 or 0x007302B3`);
+});
+
+test("wordFields cuts a decoded word into the boxes the encoder holds, and the encoder reads them back the same way", () => {
+  // add t0, t1, t2 — round tripped from a decoded word into the encoder.
+  const decoded = values("riscv-decode", { word: "0x007302B3", read: "hex" });
+  const fields = wordFields(decoded.Bits);
+  assert.deepEqual(fields, {
+    funct7: "0000000", rs2: "00111", rs1: "00110", funct3: "000", rd: "00101", opcode: "0110011",
+  });
+  assert.equal(values("riscv-encode", fields).Instruction, "add t0, t1, t2");
+
+  // An opcode not on the card cannot be laid out, so there is nothing to send.
+  assert.equal(wordFields("1".repeat(32)), null);
 });
 
 test("the decoder reads a table pattern, letters and all", () => {

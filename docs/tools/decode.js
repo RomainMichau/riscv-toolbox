@@ -35,14 +35,22 @@ function parseNumber(text) {
   return value;
 }
 
+// parseHex reads plain hex digits — an 0x in front makes no difference — so
+// the explicit Hex mode does not need one the way Number mode does.
+function parseHex(text) {
+  const digits = text.startsWith("0x") ? text.slice(2) : text;
+  return parseDigits(digits, 16);
+}
+
 // wordPattern turns the input into exactly 32 characters of bits and variables.
 function wordPattern(text, read) {
   // A 0x/0b/0o prefix is unambiguous — it reads as a number regardless of the
   // toggle, so pasting a hex word works without switching "Read as" first.
-  if (read === "number" || /^0[xbo]/i.test(text)) {
-    const value = parseNumber(text.toLowerCase());
+  if (read === "number" || read === "hex" || /^0[xbo]/i.test(text)) {
+    const value = read === "hex" ? parseHex(text.toLowerCase()) : parseNumber(text.toLowerCase());
     if (value === null) {
-      throw new Error(`${JSON.stringify(text)} is not a number — try 7537331 or 0x007302B3`);
+      const example = read === "hex" ? "007302B3 or 0x007302B3" : "7537331 or 0x007302B3";
+      throw new Error(`${JSON.stringify(text)} is not a${read === "hex" ? " hex" : ""} number — try ${example}`);
     }
     if (value > UINT32_MAX) {
       throw new Error(`${text} does not fit in a 32 bit word`);

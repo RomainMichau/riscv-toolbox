@@ -26,8 +26,9 @@ function save() {
   }
 }
 
-// useFold gives a fold its open state and the toggle to flip it, remembering
-// the choice under key.
+// useFold gives a fold its open state, the toggle to flip it, and a way to
+// force it open from outside — a card another card sends something to should
+// open up to show it, even if the reader had folded it shut.
 export function useFold(key, closedByDefault) {
   const [open, setOpen] = useState(() => !(key in folds ? Boolean(folds[key]) : closedByDefault));
   const toggle = () => {
@@ -37,5 +38,10 @@ export function useFold(key, closedByDefault) {
       return !wasOpen;
     });
   };
-  return [open, toggle];
+  const show = () => {
+    folds[key] = false;
+    save();
+    setOpen(true);
+  };
+  return [open, toggle, show];
 }

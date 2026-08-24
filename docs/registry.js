@@ -511,6 +511,7 @@ export const TOOLS = [
         options: [
           { id: "bits", label: "Bits" },
           { id: "number", label: "Number" },
+          { id: "hex", label: "Hex" },
         ],
         value: "bits",
       },
