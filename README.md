@@ -24,3 +24,4 @@ npm test
 - Make sure we handle 0x and 0b prefix correctly
 - 32 bits signed is broken (put the minus bit on 7th instead of 31th)
 - Make instructuion encoder more interactive
+- make unstructio decoder support hexa input
