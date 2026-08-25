@@ -5,6 +5,11 @@
   "description": "Small helpers for reading and writing RISC-V instructions, served as a static site.",
   "scripts": {
     "test": "node --test test/",
-    "serve": "python3 -m http.server 8080 --directory docs"
+    "serve": "python3 -m http.server 8080 --directory docs",
+    "vendor": "node scripts/vendor.mjs",
+    "postinstall": "node scripts/vendor.mjs"
+  },
+  "devDependencies": {
+    "isa-toolkit": "github:RomainMichau/isa-toolkit#v1.0.0"
   }
 }

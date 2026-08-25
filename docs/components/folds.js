@@ -4,7 +4,13 @@
 
 import { useState } from "preact/hooks";
 
-const STORE_KEY = "rvt.collapsed";
+// Every toolbox built on this framework is served as its own GitHub Pages
+// project site, but they all share one origin (romainmichau.github.io) —
+// and localStorage is scoped per origin, not per path. A fixed key here
+// would let one toolbox's fold state leak into another's wherever they
+// happen to reuse a tool id. Keying off the deployed path keeps each site's
+// state to itself without every consumer having to configure anything.
+const STORE_KEY = "isa.collapsed." + (typeof location !== "undefined" ? location.pathname.split("/")[1] || "" : "");
 
 // A stored entry is true when the fold is *closed*: the default is open, so
 // only the folds a reader actually shut need remembering.
