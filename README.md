@@ -13,6 +13,8 @@ row of boxes changes into the format it asks for.
 
 Static site — no backend, no build. It is `docs/`, served as it sits.
 
+Same shape as [Turing Complete Toolbox](https://github.com/romainmichau/turing_complete_toolbox), a sibling toolbox for a different instruction set.
+
 ```sh
 npm run serve   # localhost:8080
 npm test

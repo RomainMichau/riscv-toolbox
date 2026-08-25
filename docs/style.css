@@ -43,7 +43,15 @@ header {
 h1 { margin: 0; font-size: 1.6rem; letter-spacing: .02em; }
 .sub { margin: .35rem 0 0; color: var(--muted); font-size: .9rem; }
 
-/* Where the toolbox comes from. Quiet enough to stay out of the way. */
+.links {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+/* Where the toolbox comes from, and its sibling toolbox. Quiet enough to
+   stay out of the way. */
 .repo {
   flex: none;
   display: inline-flex;
