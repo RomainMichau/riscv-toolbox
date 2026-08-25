@@ -6,6 +6,7 @@
 
 import { INSTRUCTIONS, REGISTERS, FIELDS, WORD_BITS, wordFields, applyInstruction } from "./tools/riscv.js";
 import { sendableFromBits } from "./tools/bits.js";
+import { NUMBER_TOOL } from "./tools/number.js";
 
 const hex = (n, digits) => "0x" + n.toString(16).toUpperCase().padStart(digits, "0");
 const bin = (n, width) => n.toString(2).padStart(width, "0");
@@ -85,28 +86,7 @@ const I_OPCODES = ["0010011", "0000011", "1100111", "1110011", "0001111"];
 const U_OPCODES = ["0110111", "0010111"];
 
 export const TOOLS = [
-  {
-    id: "number",
-    name: "Number Converter",
-    family: "General",
-    description: "Binary, decimal, hex and octal, all at once. Prefixes and separators are understood, and negatives come out in two's complement.",
-    inputs: [
-      { id: "value", placeholder: "1100 1101, 205, 0xCD…", format: "binary" },
-      {
-        id: "base",
-        label: "Read as",
-        kind: "choice",
-        options: [
-          { id: "auto", label: "Auto" },
-          { id: "bin", label: "Binary" },
-          { id: "dec", label: "Decimal" },
-          { id: "hex", label: "Hex" },
-          { id: "oct", label: "Octal" },
-        ],
-        value: "auto",
-      },
-    ],
-  },
+  NUMBER_TOOL,
   {
     id: "riscv-doc",
     name: "Instruction Doc",

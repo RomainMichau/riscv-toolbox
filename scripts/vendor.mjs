@@ -13,6 +13,7 @@ const docs = join(root, "docs");
 
 const FILES = [
   "lib/bus.js",
+  "lib/bootstrap.js",
   "lib/hooks.mjs",
   "lib/html.js",
   "lib/htm.mjs",
@@ -28,6 +29,7 @@ const FILES = [
   "components/segments-dom.js",
   "tools/bits.js",
   "tools/number.js",
+  "tools/run.js",
 ];
 
 if (!existsSync(pkg)) {
