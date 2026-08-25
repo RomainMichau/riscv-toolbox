@@ -6,85 +6,14 @@
 // The opcode is read first: until it is known there is no telling which format
 // the word is in, and so no telling where the other fields even are.
 
-import { cleanBits, parseDigits } from "./bits.js";
+import { cleanBits, patternValue as value, variableName, wordPattern } from "./bits.js";
 import * as rv from "./riscv.js";
-
-const UINT64_MAX = (1n << 64n) - 1n;
-const UINT32_MAX = (1n << 32n) - 1n;
 
 // The label each field is shown under.
 const LABELS = {
   funct7: "funct7", funct3: "funct3", rd: "rd", rs1: "rs1", rs2: "rs2",
   imm: "imm", immHi: "imm high", immLo: "imm low", opcode: "opcode",
 };
-
-// parseNumber reads a literal the way a C compiler would: the prefix picks the
-// base, a bare leading zero means octal, and no sign is allowed. Returns null
-// when the text is not a number at all.
-function parseNumber(text) {
-  if (text === "") return null;
-  let radix = 10;
-  let digits = text;
-  if (text.startsWith("0x")) [radix, digits] = [16, text.slice(2)];
-  else if (text.startsWith("0b")) [radix, digits] = [2, text.slice(2)];
-  else if (text.startsWith("0o")) [radix, digits] = [8, text.slice(2)];
-  else if (text.length > 1 && text[0] === "0") [radix, digits] = [8, text.slice(1)];
-
-  const value = parseDigits(digits, radix);
-  if (value === null || value > UINT64_MAX) return null;
-  return value;
-}
-
-// parseHex reads plain hex digits — an 0x in front makes no difference — so
-// the explicit Hex mode does not need one the way Number mode does.
-function parseHex(text) {
-  const digits = text.startsWith("0x") ? text.slice(2) : text;
-  return parseDigits(digits, 16);
-}
-
-// wordPattern turns the input into exactly 32 characters of bits and variables.
-function wordPattern(text, read) {
-  // A 0x/0b/0o prefix is unambiguous — it reads as a number regardless of the
-  // toggle, so pasting a hex word works without switching "Read as" first.
-  if (read === "number" || read === "hex" || /^0[xbo]/i.test(text)) {
-    const value = read === "hex" ? parseHex(text.toLowerCase()) : parseNumber(text.toLowerCase());
-    if (value === null) {
-      const example = read === "hex" ? "007302B3 or 0x007302B3" : "7537331 or 0x007302B3";
-      throw new Error(`${JSON.stringify(text)} is not a${read === "hex" ? " hex" : ""} number — try ${example}`);
-    }
-    if (value > UINT32_MAX) {
-      throw new Error(`${text} does not fit in a 32 bit word`);
-    }
-    return value.toString(2).padStart(rv.WORD_BITS, "0");
-  }
-
-  for (let i = 0; i < text.length; i++) {
-    const r = text[i];
-    const bit = r === "0" || r === "1";
-    const letter = (r >= "a" && r <= "z") || (r >= "A" && r <= "Z");
-    if (!bit && !letter) {
-      throw new Error(`${JSON.stringify(r)} at position ${i + 1} is neither a bit nor a variable`);
-    }
-  }
-  if (text.length > rv.WORD_BITS) {
-    throw new Error(`${text.length} bits given, a word is ${rv.WORD_BITS}`);
-  }
-  // A short pattern is read as the low bits of the word, like a number is.
-  return "0".repeat(rv.WORD_BITS - text.length) + text;
-}
-
-// value reads a run of the pattern, and says whether it was all bits.
-function value(slice) {
-  if (!/^[01]+$/.test(slice)) return [0, false];
-  return [parseInt(slice, 2), true];
-}
-
-// variableName is the letter a field is filled with, or the raw run when it is
-// a mix of bits and letters.
-function variableName(slice) {
-  const first = slice[0];
-  return [...slice].every((c) => c === first) ? first : slice;
-}
 
 const unknown = (slice) => `variable ${variableName(slice)}`;
 
@@ -102,7 +31,7 @@ export function decodeRiscv(input) {
   const text = cleanBits(input.word || "");
   if (text === "") return [];
 
-  const pattern = wordPattern(text, input.read);
+  const pattern = wordPattern(text, input.read, rv.WORD_BITS);
   const fields = [{ label: "Bits", value: pattern, format: "bits" }];
 
   // Every other field's position hangs off the opcode, so a word whose opcode
