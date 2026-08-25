@@ -62,11 +62,14 @@ export function mountSegments(host, tool, onValues) {
   // ever sets values and asks for a rebuild, same as a keystroke does.
   if (tool.instructions) {
     host.append(instructionPicker(tool.instructions, (inst) => {
-      applyInstruction(inst, values);
+      const before = { ...values };
+      tool.applyInstruction(inst, values);
       changed();
       // Send the caret to the first field the instruction did not pin down,
-      // so filling in the operands can start right away.
-      const pinned = new Set(["opcode", "funct3", "funct7"]);
+      // so filling in the operands can start right away. "Pinned down" is
+      // whatever applyInstruction actually touched — there is no fixed list
+      // of field names here, that would only hold for one instruction set.
+      const pinned = new Set(Object.keys(values).filter((id) => values[id] !== before[id]));
       const next = layout.find((spec) => spec.id && !pinned.has(spec.id));
       if (next) row.restore({ id: next.id, caret: 0 });
     }));
@@ -87,30 +90,6 @@ export function mountSegments(host, tool, onValues) {
     host.replaceChildren();
     offLoad();
   };
-}
-
-const bin = (n, width) => (n >>> 0).toString(2).padStart(width, "0").slice(-width);
-
-// applyInstruction fills in the fields an instruction pins down — opcode,
-// funct3, and whatever tells it apart from its neighbours — and leaves the
-// operands (rd, rs1, rs2, the rest of imm) exactly as they were typed, so
-// picking an instruction is a shortcut into the boxes, not a reset of them.
-function applyInstruction(inst, values) {
-  values.opcode = bin(inst.opcode, 7);
-  if (inst.funct3 !== undefined) values.funct3 = bin(inst.funct3, 3);
-
-  if (inst.fmt === "R") {
-    // An atomic hides its funct5 in the top of funct7 and leaves aq/rl free.
-    const funct7 = inst.funct7 !== undefined ? inst.funct7 : (inst.funct5 ?? 0) << 2;
-    values.funct7 = bin(funct7, 7);
-  } else if (inst.imm7 !== undefined) {
-    // A shift hides its funct7 in the top of the immediate; shamt is below it.
-    const shamt = values.imm ? values.imm.slice(-5) : "00000";
-    values.imm = bin(inst.imm7, 7) + shamt;
-  } else if (inst.imm !== undefined) {
-    // ecall/ebreak: the whole immediate is what tells them apart.
-    values.imm = bin(inst.imm, 12);
-  }
 }
 
 let pickerSeq = 0;

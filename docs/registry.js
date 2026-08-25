@@ -4,7 +4,7 @@
 // same INSTRUCTIONS table the encoder and the decoder read, so the reference
 // and the answers can never drift apart.
 
-import { INSTRUCTIONS, REGISTERS, FIELDS } from "./tools/riscv.js";
+import { INSTRUCTIONS, REGISTERS, FIELDS, wordFields, applyInstruction } from "./tools/riscv.js";
 
 const hex = (n, digits) => "0x" + n.toString(16).toUpperCase().padStart(digits, "0");
 const bin = (n, width) => n.toString(2).padStart(width, "0");
@@ -428,6 +428,7 @@ export const TOOLS = [
     family: "RISC-V",
     description: "Build an instruction bit by bit and read the word to feed the machine. Type the opcode first — or pick an instruction by name and let it fill the opcode in — and the row of boxes changes shape to match.",
     instructions: INSTRUCTIONS,
+    applyInstruction,
     inputs: [
       {
         id: "regFormat",
@@ -502,6 +503,14 @@ export const TOOLS = [
     name: "Instruction Decoder",
     family: "RISC-V",
     description: "Read a word back into its fields. Letters stand for variables, so a pattern like 0000000rrrrrsssss000ddddd0110011 works as well as plain bits.",
+    sendTo: "riscv-encode",
+    sendLabel: "Edit in encoder →",
+    // A word the decoder has fully read — no unknown-bit letters left in it —
+    // can be handed straight to the encoder to tweak field by field.
+    extractSendable: (res) => {
+      const bits = res.fields?.find((f) => f.label === "Bits")?.value;
+      return bits && /^[01]{32}$/.test(bits) ? wordFields(bits) : null;
+    },
     inputs: [
       { id: "word", placeholder: "0000000 00111 00110 000 00101 0110011", format: "bits" },
       {

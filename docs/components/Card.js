@@ -10,7 +10,6 @@ import { Segmented } from "./Segmented.js";
 import { Results } from "./Results.js";
 import { run } from "../tools/index.js";
 import { on, emit } from "../lib/bus.js";
-import { wordFields } from "../tools/riscv.js";
 
 // defaults are what the boxes hold before anything is typed: the picked choice,
 // or a field's worth of zeroes. Filler segments have no id and no value to keep.
@@ -73,10 +72,10 @@ export function Card({ tool, closedByDefault }) {
     field = html`<${InputForm} inputs=${inputs} values=${values} onChange=${onChange} />`;
   }
 
-  // A word the decoder has fully read — no unknown-bit letters left in it —
-  // can be handed straight to the encoder to tweak field by field.
-  const decodedBits = tool.id === "riscv-decode" ? res?.fields?.find((f) => f.label === "Bits")?.value : null;
-  const sendable = decodedBits && /^[01]{32}$/.test(decodedBits) ? wordFields(decodedBits) : null;
+  // A tool can offer to hand its result straight to another one — the
+  // decoder handing a fully-read word to the encoder, say — by declaring
+  // sendTo and extractSendable; there is nothing RISC-V-specific here.
+  const sendable = tool.sendTo && res ? tool.extractSendable?.(res) : null;
 
   const classes = ["tool"];
   if (tool.doc || segmented) classes.push("wide");
@@ -92,8 +91,8 @@ export function Card({ tool, closedByDefault }) {
         ${field}
         ${res ? html`<${Results} fields=${res.fields} error=${res.error} />` : null}
         ${sendable ? html`
-          <button type="button" class="send-to-encoder" onClick=${() => emit("load:riscv-encode", sendable)}>
-            Edit in encoder →
+          <button type="button" class="send-to-encoder" onClick=${() => emit(`load:${tool.sendTo}`, sendable)}>
+            ${tool.sendLabel || "Send →"}
           </button>` : null}
       </div>
     </section>`;
