@@ -11,7 +11,7 @@
 // The opcode alone says which of the six it is, which is why every tool here
 // reads that field first and lets it decide the rest.
 
-import { sliceFields } from "./bits.js";
+import { sliceFields, shiftToSlice } from "./bits.js";
 
 export const WORD_BITS = 32;
 
@@ -53,7 +53,7 @@ export function layout(fmt) {
 // slices is the same layout, as ranges of the 32 character bit pattern a
 // decoder reads.
 export function slices(fmt) {
-  return layout(fmt).map(([id, f]) => [id, [WORD_BITS - f.shift - f.width, WORD_BITS - f.shift]]);
+  return layout(fmt).map(([id, f]) => [id, shiftToSlice(f.shift, f.width, WORD_BITS)]);
 }
 
 // The opcodes the card documents, and the format each one is read in. An
@@ -352,17 +352,3 @@ export function effect(inst, { rd, rs1, rs2, imm }) {
     // is the same subtraction, spelled the long way round.
     .replace(/\+ -/g, "- ");
 }
-
-// wordBits renders a word as bits, one group per byte, the way the results
-// line shows them.
-export function wordBits(word) {
-  let out = "";
-  for (let i = WORD_BITS - 1; i >= 0; i--) {
-    out += (word >>> i) & 1;
-    if (i % 8 === 0 && i !== 0) out += " ";
-  }
-  return out;
-}
-
-// hexWord is the eight digit hex a word is usually quoted as.
-export const hexWord = (word) => "0x" + word.toString(16).toUpperCase().padStart(8, "0");

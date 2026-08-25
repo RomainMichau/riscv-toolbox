@@ -3,22 +3,8 @@
 // which format the rest of the word is read in, so the row of boxes changes
 // shape as soon as you type it.
 
-import { cleanBits } from "./bits.js";
+import { bitsField, packWord, wordBits, hexWord } from "./bits.js";
 import * as rv from "./riscv.js";
-
-// bitsField reads one named bit field, defaulting to 0 when it is missing.
-function bitsField(input, id, width) {
-  const raw = input[id] || "";
-  const bits = cleanBits(raw);
-  if (bits === "") return 0;
-  if (bits.length > width) {
-    throw new Error(`${id}: ${bits.length} bits given, field is ${width} bits wide`);
-  }
-  if (!/^[01]+$/.test(bits)) {
-    throw new Error(`${id}: ${JSON.stringify(raw)} is not a binary value`);
-  }
-  return parseInt(bits, 2);
-}
 
 export function encodeRiscv(input) {
   const opcode = bitsField(input, "opcode", rv.FIELDS.opcode.width);
@@ -29,18 +15,12 @@ export function encodeRiscv(input) {
 
   // Only the fields this format lays out are read: the boxes of the format
   // last on screen keep their values, and must not leak into this word.
-  const f = {};
-  let word = 0;
-  for (const [id, spec] of rv.layout(fmt)) {
-    f[id] = bitsField(input, id, spec.width);
-    word |= f[id] << spec.shift;
-  }
-  word >>>= 0;
+  const { word, fields: f } = packWord(rv.layout(fmt), input);
 
   const fields = [
     { label: "Int", value: String(word) },
-    { label: "Hex", value: rv.hexWord(word) },
-    { label: "Bits", value: rv.wordBits(word), format: "bits" },
+    { label: "Hex", value: hexWord(word, rv.WORD_BITS) },
+    { label: "Bits", value: wordBits(word, rv.WORD_BITS), format: "bits" },
     {
       label: "Format",
       value: known ? `${fmt} · ${known.name}` : `${opcode.toString(2).padStart(7, "0")} is not an opcode the card lists`,
