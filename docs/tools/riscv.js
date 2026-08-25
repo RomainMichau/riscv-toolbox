@@ -11,6 +11,8 @@
 // The opcode alone says which of the six it is, which is why every tool here
 // reads that field first and lets it decide the rest.
 
+import { sliceFields } from "./bits.js";
+
 export const WORD_BITS = 32;
 
 // Where a field sits in the word: how far left it is shifted, and how wide.
@@ -83,10 +85,7 @@ export const formatOf = (opcode) => OPCODES[opcode]?.fmt || "";
 export function wordFields(pattern) {
   const opcode = parseInt(pattern.slice(WORD_BITS - 7), 2);
   const fmt = formatOf(opcode);
-  if (!fmt) return null;
-  const out = {};
-  for (const [id, [from, to]] of slices(fmt)) out[id] = pattern.slice(from, to);
-  return out;
+  return fmt ? sliceFields(pattern, slices(fmt)) : null;
 }
 
 const bin = (n, width) => (n >>> 0).toString(2).padStart(width, "0").slice(-width);

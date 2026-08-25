@@ -4,7 +4,8 @@
 // same INSTRUCTIONS table the encoder and the decoder read, so the reference
 // and the answers can never drift apart.
 
-import { INSTRUCTIONS, REGISTERS, FIELDS, wordFields, applyInstruction } from "./tools/riscv.js";
+import { INSTRUCTIONS, REGISTERS, FIELDS, WORD_BITS, wordFields, applyInstruction } from "./tools/riscv.js";
+import { sendableFromBits } from "./tools/bits.js";
 
 const hex = (n, digits) => "0x" + n.toString(16).toUpperCase().padStart(digits, "0");
 const bin = (n, width) => n.toString(2).padStart(width, "0");
@@ -507,10 +508,7 @@ export const TOOLS = [
     sendLabel: "Edit in encoder →",
     // A word the decoder has fully read — no unknown-bit letters left in it —
     // can be handed straight to the encoder to tweak field by field.
-    extractSendable: (res) => {
-      const bits = res.fields?.find((f) => f.label === "Bits")?.value;
-      return bits && /^[01]{32}$/.test(bits) ? wordFields(bits) : null;
-    },
+    extractSendable: (res) => sendableFromBits(res, WORD_BITS, wordFields),
     inputs: [
       { id: "word", placeholder: "0000000 00111 00110 000 00101 0110011", format: "bits" },
       {
