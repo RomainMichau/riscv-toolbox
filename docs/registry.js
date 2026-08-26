@@ -410,6 +410,15 @@ export const TOOLS = [
     description: "Build an instruction bit by bit and read the word to feed the machine. Type the opcode first — or pick an instruction by name and let it fill the opcode in — and the row of boxes changes shape to match.",
     instructions: INSTRUCTIONS,
     applyInstruction,
+    instructionHint: "add, addi, lw, beq…",
+    // The other half of the decoder's hand-off: a word built here can go
+    // straight back to be read field by field.
+    sendTo: "riscv-decode",
+    sendLabel: "Read in decoder →",
+    extractSendable: (res) => {
+      const bits = res.fields?.find((f) => f.label === "Bits")?.value?.replace(/ /g, "");
+      return bits && new RegExp(`^[01]{${WORD_BITS}}$`).test(bits) ? { word: bits, read: "bits" } : null;
+    },
     inputs: [
       {
         id: "regFormat",
